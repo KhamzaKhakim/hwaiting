@@ -42,6 +42,17 @@ h1 {
   text-align: center;
 }
 
+.flex {
+  display: flex;
+  gap: 8px;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

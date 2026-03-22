@@ -1,21 +1,43 @@
-import { setupCounter } from "./counter.ts";
 import "./style.css";
 
-document.querySelector("#app")!.innerHTML = `
-  <div>
-   <button id="read-btn">Read DOM</button>
-    <p class="read-the-docs">
-      Click on the CRXJS logo to learn more
-    </p>
-  </div>
-`;
+async function renderApp() {
+  const result = await chrome.storage.local.get(["gemini_key"]);
+  const key = result.gemini_key;
 
-// setupCounter(document.querySelector("#counter")!);
+  document.querySelector("#app")!.innerHTML = key
+    ? `
+      <div class="flex-col">
+       <button id="read-btn">Read DOM</button>
+       <button id="remove-key">Remove Key</button>
+      </div>
+    `
+    : `
+      <div class="flex-col">
+        <input id="key-input" type="text" placeholder="Enter Gemini API key" />
+        <button id="set-key">Save Key</button>
+      </div>
+    `;
 
-document.getElementById("read-btn")?.addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  chrome.tabs.sendMessage(tab.id!, { action: "readDOM" }, (response) => {
-    console.log("Modified text:", response.text);
+  document.getElementById("read-btn")?.addEventListener("click", async () => {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    chrome.tabs.sendMessage(tab.id!, { action: "readDOM" }, (response) => {
+      console.log("Response:", response);
+    });
   });
-});
+
+  document.getElementById("remove-key")?.addEventListener("click", async () => {
+    await chrome.storage.local.remove("gemini_key");
+    renderApp(); // Re-render after saving
+  });
+
+  document.getElementById("set-key")?.addEventListener("click", async () => {
+    const input = document.getElementById("key-input") as HTMLInputElement;
+    await chrome.storage.local.set({ gemini_key: input.value });
+    renderApp(); // Re-render after saving
+  });
+}
+
+renderApp();
