@@ -1,3 +1,4 @@
+import { initAuth } from "@/oauth/oauth";
 import "./style.css";
 
 async function renderApp() {
@@ -9,6 +10,7 @@ async function renderApp() {
       <div class="flex-col">
        <button id="read-btn">Read DOM</button>
        <button id="remove-key">Remove Key</button>
+       <button id="auth-btn">Get token</button>
       </div>
     `
     : `
@@ -38,6 +40,8 @@ async function renderApp() {
     await chrome.storage.local.set({ gemini_key: input.value });
     renderApp(); // Re-render after saving
   });
+
+  initAuth();
 }
 
 renderApp();
