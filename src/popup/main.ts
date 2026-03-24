@@ -1,5 +1,6 @@
 import { initAuth } from "@/oauth/oauth";
 import "./style.css";
+import { createSpreadsheet } from "@/sheets/create";
 
 async function renderApp() {
   const result = await chrome.storage.local.get(["gemini_key"]);
@@ -11,6 +12,7 @@ async function renderApp() {
        <button id="read-btn">Read DOM</button>
        <button id="remove-key">Remove Key</button>
        <button id="auth-btn">Get token</button>
+       <button id="create-btn">Create</button>
       </div>
     `
     : `
@@ -39,6 +41,12 @@ async function renderApp() {
     const input = document.getElementById("key-input") as HTMLInputElement;
     await chrome.storage.local.set({ gemini_key: input.value });
     renderApp(); // Re-render after saving
+  });
+
+  document.getElementById("create-btn")?.addEventListener("click", async () => {
+    const id = await createSpreadsheet("test");
+
+    console.log("sheet id: ", id);
   });
 
   initAuth();
