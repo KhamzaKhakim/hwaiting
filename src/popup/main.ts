@@ -3,8 +3,15 @@ import "./style.css";
 import { createSpreadsheet } from "@/sheets/create";
 
 async function renderApp() {
-  const result = await chrome.storage.local.get(["gemini_key"]);
-  const key = result.gemini_key;
+  const key = await chrome.storage.local
+    .get(["gemini_key"])
+    .then((v) => v?.gemini_key as string | undefined);
+
+  const spreadsheetId = await chrome.storage.local
+    .get(["spreadsheet_id"])
+    .then((v) => v?.spreadsheet_id as string | undefined);
+
+  console.log(typeof spreadsheetId);
 
   document.querySelector("#app")!.innerHTML = key
     ? `
@@ -12,7 +19,7 @@ async function renderApp() {
        <button id="read-btn">Read DOM</button>
        <button id="remove-key">Remove Key</button>
        <button id="auth-btn">Get token</button>
-       <button id="create-btn">Create</button>
+       ${spreadsheetId ? ` <p>${spreadsheetId}</p>` : `<button id="create-btn">Create</button>`}
       </div>
     `
     : `
@@ -44,9 +51,18 @@ async function renderApp() {
   });
 
   document.getElementById("create-btn")?.addEventListener("click", async () => {
-    const id = await createSpreadsheet("test");
-
+    const id = await createSpreadsheet(
+      "test-" +
+        new Date().toLocaleTimeString(navigator.language, {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
+    );
+    await chrome.storage.local.set({ spreadsheet_id: id });
     console.log("sheet id: ", id);
+
+    renderApp();
   });
 
   initAuth();
