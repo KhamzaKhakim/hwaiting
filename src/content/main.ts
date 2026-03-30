@@ -25,7 +25,9 @@ Rules:
 Page text:\n`;
 
 chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
+  console.log("Start gemini");
   if (msg.action === "readDOM" && !!key) {
+    console.log("Start gemini");
     const text = document.body.innerText;
 
     const response = await ai.models.generateContent({

@@ -25,11 +25,6 @@ export async function copySheet() {
   }
 
   const result = await response.json();
-  console.log("✅ File created!");
-  console.log("Open:", `https://docs.google.com/spreadsheets/d/${result.id}`);
-
-  const sheetUrl = `https://docs.google.com/spreadsheets/d/${result.id}`;
-  window.open(sheetUrl, "_blank");
 
   return result;
 }

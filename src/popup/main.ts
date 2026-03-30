@@ -1,7 +1,7 @@
 import { initAuth } from "@/oauth/oauth";
 import "./style.css";
-import { createSpreadsheet } from "@/sheets/create";
 import { copySheet } from "@/sheets/copy";
+import { appendValues } from "@/sheets/append";
 
 async function renderApp() {
   const key = await chrome.storage.local
@@ -12,7 +12,7 @@ async function renderApp() {
     .get(["spreadsheet_id"])
     .then((v) => v?.spreadsheet_id as string | undefined);
 
-  console.log(typeof spreadsheetId);
+  console.log("spreadsheetId: ", spreadsheetId);
 
   document.querySelector("#app")!.innerHTML = key
     ? `
@@ -20,8 +20,7 @@ async function renderApp() {
        <button id="read-btn">Read DOM</button>
        <button id="remove-key">Remove Key</button>
        <button id="auth-btn">Get token</button>
-       <button id="upload-btn">Upload</button>
-       ${spreadsheetId ? ` <p>${spreadsheetId}</p>` : `<button id="create-btn">Create</button>`}
+       ${spreadsheetId ? ` <p>${spreadsheetId}</p><button id="delete-btn">Delete Sheet</button>` : `<button id="upload-btn">Create Sheet</button>`}
       </div>
     `
     : `
@@ -36,9 +35,16 @@ async function renderApp() {
       active: true,
       currentWindow: true,
     });
-    chrome.tabs.sendMessage(tab.id!, { action: "readDOM" }, (response) => {
-      console.log("Response:", response);
-    });
+    chrome.tabs.sendMessage(
+      tab.id!,
+      { action: "readDOM" },
+      async (response) => {
+        console.log("Response:", response);
+
+        await appendValues(response);
+        console.log("Bone:");
+      },
+    );
   });
 
   document.getElementById("remove-key")?.addEventListener("click", async () => {
@@ -52,25 +58,25 @@ async function renderApp() {
     renderApp(); // Re-render after saving
   });
 
-  document.getElementById("create-btn")?.addEventListener("click", async () => {
-    const id = await createSpreadsheet(
-      "test-" +
-        new Date().toLocaleTimeString(navigator.language, {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
-    );
+  document.getElementById("upload-btn")?.addEventListener("click", async () => {
+    const { id } = await copySheet();
+
+    console.log(id);
     await chrome.storage.local.set({ spreadsheet_id: id });
     console.log("sheet id: ", id);
+
+    console.log("Copy is done");
+
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${id}`;
+    window.open(sheetUrl, "_blank");
 
     renderApp();
   });
 
-  document.getElementById("upload-btn")?.addEventListener("click", async () => {
-    const id = await copySheet();
-    // await chrome.storage.local.set({ spreadsheet_id: id });
-    console.log("Copy is done");
+  document.getElementById("delete-btn")?.addEventListener("click", async () => {
+    await chrome.storage.local.remove("spreadsheet_id");
+
+    console.log("Sheet is removed");
 
     renderApp();
   });
