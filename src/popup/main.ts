@@ -1,6 +1,7 @@
 import { initAuth } from "@/oauth/oauth";
 import "./style.css";
 import { createSpreadsheet } from "@/sheets/create";
+import { copySheet } from "@/sheets/copy";
 
 async function renderApp() {
   const key = await chrome.storage.local
@@ -19,6 +20,7 @@ async function renderApp() {
        <button id="read-btn">Read DOM</button>
        <button id="remove-key">Remove Key</button>
        <button id="auth-btn">Get token</button>
+       <button id="upload-btn">Upload</button>
        ${spreadsheetId ? ` <p>${spreadsheetId}</p>` : `<button id="create-btn">Create</button>`}
       </div>
     `
@@ -61,6 +63,14 @@ async function renderApp() {
     );
     await chrome.storage.local.set({ spreadsheet_id: id });
     console.log("sheet id: ", id);
+
+    renderApp();
+  });
+
+  document.getElementById("upload-btn")?.addEventListener("click", async () => {
+    const id = await copySheet();
+    // await chrome.storage.local.set({ spreadsheet_id: id });
+    console.log("Copy is done");
 
     renderApp();
   });
