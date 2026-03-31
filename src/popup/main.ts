@@ -39,10 +39,8 @@ async function renderApp() {
       tab.id!,
       { action: "readDOM" },
       async (response) => {
-        console.log("Response:", response);
-
-        await appendValues(response);
-        console.log("Bone:");
+        await appendValues(response.text);
+        console.log("Succesfully appended");
       },
     );
   });

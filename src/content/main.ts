@@ -24,21 +24,23 @@ Rules:
 
 Page text:\n`;
 
-chrome.runtime.onMessage.addListener(async (msg, _sender, sendResponse) => {
-  console.log("Start gemini");
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "readDOM" && !!key) {
     console.log("Start gemini");
-    const text = document.body.innerText;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: promt + text,
-    });
+    (async () => {
+      console.log("Start gemini");
+      const text = document.body.innerText;
 
-    console.log("Content response:");
-    console.log(response.text);
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-lite-preview",
+        contents: promt + text,
+      });
 
-    sendResponse({ text: response });
+      console.log("Content response:", response.text);
+
+      sendResponse({ text: response.text });
+    })();
   }
   return true;
 });

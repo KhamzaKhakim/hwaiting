@@ -7,9 +7,10 @@ export async function appendValues(values: string): Promise<void> {
     .match(/(".*?"|[^,]+)/g)!
     .map((cell) => cell.replace(/^"|"$/g, "").trim());
 
-  cells.splice(2, 0, "05/08/2004");
+  const today = new Date();
+  const date = `${String(today.getDate()).padStart(2, "0")}/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
 
-  // const valuesArr = values.split()
+  cells.splice(2, 0, date);
 
   const spreadsheetId = await chrome.storage.local
     .get(["spreadsheet_id"])
@@ -23,7 +24,7 @@ export async function appendValues(values: string): Promise<void> {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ values: cells }),
+      body: JSON.stringify({ values: [[...cells, "Applied"]] }),
     },
   );
 
@@ -33,6 +34,4 @@ export async function appendValues(values: string): Promise<void> {
       `Sheets append failed: ${err.error?.message ?? res.statusText}`,
     );
   }
-
-  console.log("DOne");
 }

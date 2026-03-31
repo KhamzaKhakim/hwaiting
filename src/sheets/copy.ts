@@ -14,7 +14,7 @@ export async function copySheet() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: "Hwaiting",
+        name: "Hwaiting " + new Date().toTimeString().split(" ")[0],
       }),
     },
   );
