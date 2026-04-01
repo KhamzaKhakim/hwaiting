@@ -5,6 +5,7 @@
     "": {
       "name": "hwainting",
       "dependencies": {
+        "@fontsource/sulphur-point": "^5.2.7",
         "@google/genai": "^1.46.0",
         "google-auth-library": "^10.6.2",
         "google-spreadsheet": "^5.2.0",
@@ -28,6 +29,8 @@
     "@emnapi/runtime": ["@emnapi/runtime@1.9.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-VYi5+ZVLhpgK4hQ0TAjiQiZ6ol0oe4mBx7mVv7IflsiEp0OWoVsp/+f9Vc1hOhE0TtkORVrI1GvzyreqpgWtkA=="],
 
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-N10dEJNSsUx41Z6pZsXU8FjPjpBEplgH24sfkmITrBED1/U2Esum9F3lfLrMjKHHjmi557zQn7kR9R+XWXu5Rg=="],
+
+    "@fontsource/sulphur-point": ["@fontsource/sulphur-point@5.2.7", "", {}, "sha512-j34BK4aNOucQQZual/wj1wNi6E4kSHkHMw+r+IruF2KYyIAF//dvCBQ/BvKp3KLOjYgx1YbLlTEzKecZdtD+PA=="],
 
     "@google/genai": ["@google/genai@1.46.0", "", { "dependencies": { "google-auth-library": "^10.3.0", "p-retry": "^4.6.2", "protobufjs": "^7.5.4", "ws": "^8.18.0" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.25.2" }, "optionalPeers": ["@modelcontextprotocol/sdk"] }, "sha512-ewPMN5JkKfgU5/kdco9ZhXBHDPhVqZpMQqIFQhwsHLf8kyZfx1cNpw1pHo1eV6PGEW7EhIBFi3aYZraFndAXqg=="],
 

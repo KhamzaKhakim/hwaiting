@@ -1,5 +1,5 @@
+import "@fontsource/sulphur-point";
 import { initAuth } from "@/oauth/oauth";
-import "./style.css";
 import { copySheet } from "@/sheets/copy";
 import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
