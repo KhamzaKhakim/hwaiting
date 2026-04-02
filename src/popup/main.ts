@@ -1,8 +1,8 @@
-import "@fontsource/sulphur-point";
 import { initAuth } from "@/oauth/oauth";
 import { copySheet } from "@/sheets/copy";
 import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
+import geminiLogo from "../assets/gemini.svg";
 
 function setButtonLoading(
   btn: HTMLButtonElement,
@@ -30,8 +30,19 @@ function showStatus(message: string, isError = false) {
 function renderKeyForm() {
   return `
     <div class="flex-col">
-      <input id="key-input" type="password" placeholder="Enter Gemini API key" />
-      <button id="set-key">Save Key</button>
+      <div class="flex-col gap-0">
+        <div class="flex items-center">
+          <img src="${geminiLogo}" alt="Gemini" />
+          <h2>Gemini API Setup</h2>
+        </div>
+        <p>Set up your Gemini API to automatically organize and send your data to Google Sheets. This is <span style="font-weight:bold;">required</span> to continue.</p>
+      </div>
+      <input id="key-input" placeholder="Enter Gemini API key" />
+      <p class="label">
+        Need a Gemini API key? Get it 
+        <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank">here</a>.
+      </p>
+      <button id="set-key" class="submit">Save Key</button>
     </div>
   `;
 }

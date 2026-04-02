@@ -16,6 +16,7 @@
     "vite-plugin-zip-pack": "^1.2.4"
   },
   "dependencies": {
+    "@fontsource-variable/caveat": "^5.2.8",
     "@fontsource/sulphur-point": "^5.2.7",
     "@google/genai": "^1.46.0",
     "google-auth-library": "^10.6.2",
