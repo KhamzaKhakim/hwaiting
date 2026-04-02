@@ -26,8 +26,6 @@ Page text:\n`;
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "readDOM" && !!key) {
-    console.log("Start gemini");
-
     (async () => {
       console.log("Start gemini");
       const text = document.body.innerText;

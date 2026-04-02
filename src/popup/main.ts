@@ -3,6 +3,7 @@ import { copySheet } from "@/sheets/copy";
 import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
 import geminiLogo from "../assets/gemini.svg";
+import { testGeminiKey } from "@/gemini/test";
 
 function setButtonLoading(
   btn: HTMLButtonElement,
@@ -27,22 +28,34 @@ function showStatus(message: string, isError = false) {
   setTimeout(() => el.remove(), 3000);
 }
 
+function showKeyError(message: string) {
+  const el = document.getElementById(
+    "key-error",
+  ) as HTMLParagraphElement | null;
+  if (!el) return;
+  el.textContent = message;
+  el.style.display = message ? "block" : "none";
+  el.style.color = "red";
+  el.style.fontWeight = "bold";
+}
+
 function renderKeyForm() {
   return `
     <div class="flex-col">
       <div class="flex-col gap-0">
         <div class="flex items-center">
-          <img src="${geminiLogo}" alt="Gemini" />
+          <img src="${geminiLogo}" style="margin-right: 4px;" alt="Gemini" />
           <h2>Gemini API Setup</h2>
         </div>
-        <p>Set up your Gemini API to automatically organize and send your data to Google Sheets. This is <span style="font-weight:bold;">required</span> to continue.</p>
+        <p class="muted">Set up your Gemini API to automatically organize and send your data to Google Sheets. This is <span style="font-weight:bold;">required</span> to continue.</p>
       </div>
-      <input id="key-input" placeholder="Enter Gemini API key" />
+      <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
+      <p id="key-error" class="status error" style="display:none; margin: 0;"></p>
       <p class="label">
-        Need a Gemini API key? Get it 
+        Don't have a Gemini API key? You can get one 
         <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank">here</a>.
       </p>
-      <button id="set-key" class="submit">Save Key</button>
+      <button id="set-key" class="submit" style="margin-top: 8px;">Save Key</button>
     </div>
   `;
 }
@@ -63,23 +76,40 @@ function renderMain(spreadsheetId?: string) {
 }
 
 function attachListeners() {
+  document.getElementById("key-input")?.addEventListener("input", () => {
+    showKeyError("");
+  });
+
   document.getElementById("set-key")?.addEventListener("click", async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
     const input = document.getElementById("key-input") as HTMLInputElement;
 
     const trimmed = input.value.trim();
+
     if (!trimmed) {
-      showStatus("Please enter a valid API key.", true);
+      showKeyError("Please enter a valid API key.");
       return;
     }
 
     setButtonLoading(btn, true, "Save Key");
+
     try {
-      await chrome.storage.local.set({ [STORAGE_KEYS.GEMINI_KEY]: trimmed });
+      await testGeminiKey(trimmed);
+
+      await chrome.storage.local.set({
+        [STORAGE_KEYS.GEMINI_KEY]: trimmed,
+      });
+
       await renderApp();
-    } catch (err) {
-      showStatus("Failed to save key. Please try again.", true);
+      showStatus("Key saved successfully!", false);
+    } catch (err: any) {
       console.error("[set-key]", err);
+
+      const message = err?.message?.includes("API_KEY_INVALID")
+        ? "Invalid API key."
+        : "Failed to validate key.";
+
+      showKeyError(message);
     } finally {
       setButtonLoading(btn, false, "Save Key");
     }
@@ -117,6 +147,8 @@ function attachListeners() {
       const response = await chrome.tabs.sendMessage(tab.id, {
         action: "readDOM",
       });
+
+      console.log(JSON.stringify(response));
       if (!response?.text) {
         showStatus("No content received from page.", true);
         return;

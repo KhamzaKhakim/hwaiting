@@ -23,9 +23,27 @@
 }
 
 :root {
+  --primary-color: #646cff;
+  --primary-color-hover: #535bf2;
+  --primary-color-shadow: rgba(100, 108, 255, 0.2);
+
+  --submit-color: #4f46e5;
+  --submit-color-hover: #4338ca;
+  --submit-color-active: #3730a3;
+
+  --bg-color: #242424;
+  --surface-color: #1a1a1a;
+
+  --text-color: rgba(255, 255, 255, 0.87);
+  --text-color-muted: #888;
+
+  --border-color: #2a2a2a;
+  --border-color-hover: #3f3f3f;
+
+  /* Scheme */
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--text-color);
+  background-color: var(--bg-color);
 
   box-sizing: border-box;
 
@@ -37,11 +55,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--primary-color);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--primary-color-hover);
 }
 
 body {
@@ -111,12 +129,12 @@ button {
   font-size: 1em;
   font-weight: 700;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--surface-color);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--primary-color);
 }
 button:focus,
 button:focus-visible {
@@ -124,84 +142,58 @@ button:focus-visible {
 }
 
 button.submit {
-  background-color: #4f46e5; /* indigo */
+  background-color: var(--submit-color);
   color: white;
   border: 1px solid transparent;
 }
 
 button.submit:hover {
-  background-color: #4338ca;
+  background-color: var(--submit-color-hover);
 }
 
 button.submit:active {
-  background-color: #3730a3;
+  background-color: var(--submit-color-active);
 }
-/* 
+
 input {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 700;
   font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: text;
-  transition: border-color 0.25s;
-  outline: none;
-  color: inherit;
-}
-
-input:hover {
-  border-color: #646cff;
-}
-
-input:focus,
-input:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-} */
-
-input {
-  border-radius: 8px;
-  border: 1px solid #2a2a2a; /* visible default border */
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 700;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--surface-color);
   cursor: text;
   transition: all 0.2s ease;
   outline: none;
   color: inherit;
 }
 
-/* hover = slight highlight */
 input:hover {
-  border-color: #3f3f3f;
+  border-color: var(--border-color-hover);
 }
 
-/* focus = your indigo accent */
 input:focus,
 input:focus-visible {
-  border-color: #646cff;
-  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-shadow);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --text-color: #213547;
+    --bg-color: #ffffff;
+    --primary-color-hover: #747bff;
+    --surface-color: #f9f9f9;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button,
-  input {
-    background-color: #f9f9f9;
-  }
+}
+
+.muted {
+  color: var(--text-color-muted);
 }
 
 .label {
   font-size: 12px;
-  color: #888;
+  color: var(--text-color-muted);
   margin-top: 4px;
 }
