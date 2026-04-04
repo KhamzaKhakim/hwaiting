@@ -52,10 +52,22 @@ function renderKeyForm() {
       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
       <p id="key-error" class="status error" style="display:none; margin: 0;"></p>
       <p class="label">
-        Don't have a Gemini API key? You can get one 
-        <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank">here</a>.
+        Don't have a Gemini API key? See the instructions 
+        <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener noreferrer">here</a>.
       </p>
-      <button id="set-key" class="submit" style="margin-top: 8px;">Save Key</button>
+      <button id="set-key-btn" class="submit" style="margin-top: 8px;">Save Key</button>
+    </div>
+  `;
+}
+
+function renderCreateSheetForm() {
+  return `
+    <div class="flex-col">
+      <div class="flex-col gap-0">
+          <h2>Create spreadsheet</h2>
+        <p class="muted">In order to put values from sheet we first need to create spreadsheet. Please click to create sheet button to create it.</p>
+      </div>
+      <button id="create-sheet-btn" class="submit" style="margin-top: 8px;">Create Sheet</button>
     </div>
   `;
 }
@@ -75,45 +87,87 @@ function renderMain(spreadsheetId?: string) {
   `;
 }
 
+function addMenu() {
+  const header = document.querySelector(".header");
+  if (!header) return;
+
+  header.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div class="burger" id="burger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="menu" id="menu">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Services</a>
+      <a href="#">Contact</a>
+    </div>
+  `,
+  );
+
+  const burger = document.getElementById("burger")!;
+  const menu = document.getElementById("menu")!;
+
+  burger.addEventListener("click", () => {
+    burger.classList.toggle("active");
+    menu.classList.toggle("show");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (
+      !burger.contains(e.target as Node) &&
+      !menu.contains(e.target as Node)
+    ) {
+      burger.classList.remove("active");
+      menu.classList.remove("show");
+    }
+  });
+}
+
 function attachListeners() {
   document.getElementById("key-input")?.addEventListener("input", () => {
     showKeyError("");
   });
 
-  document.getElementById("set-key")?.addEventListener("click", async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    const input = document.getElementById("key-input") as HTMLInputElement;
+  document
+    .getElementById("set-key-btn")
+    ?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const input = document.getElementById("key-input") as HTMLInputElement;
 
-    const trimmed = input.value.trim();
+      const trimmed = input.value.trim();
 
-    if (!trimmed) {
-      showKeyError("Please enter a valid API key.");
-      return;
-    }
+      if (!trimmed) {
+        showKeyError("Please enter a valid API key.");
+        return;
+      }
 
-    setButtonLoading(btn, true, "Save Key");
+      setButtonLoading(btn, true, "Save Key");
 
-    try {
-      await testGeminiKey(trimmed);
+      try {
+        await testGeminiKey(trimmed);
 
-      await chrome.storage.local.set({
-        [STORAGE_KEYS.GEMINI_KEY]: trimmed,
-      });
+        await chrome.storage.local.set({
+          [STORAGE_KEYS.GEMINI_KEY]: trimmed,
+        });
 
-      await renderApp();
-      showStatus("Key saved successfully!", false);
-    } catch (err: any) {
-      console.error("[set-key]", err);
+        await renderApp();
+        showStatus("Key saved successfully!", false);
+      } catch (err: any) {
+        console.error("[set-key-btn]", err);
 
-      const message = err?.message?.includes("API_KEY_INVALID")
-        ? "Invalid API key."
-        : "Failed to validate key.";
+        const message = err?.message?.includes("API_KEY_INVALID")
+          ? "Invalid API key."
+          : "Failed to validate key.";
 
-      showKeyError(message);
-    } finally {
-      setButtonLoading(btn, false, "Save Key");
-    }
-  });
+        showKeyError(message);
+      } finally {
+        setButtonLoading(btn, false, "Save Key");
+      }
+    });
 
   document
     .getElementById("remove-key")
@@ -165,7 +219,7 @@ function attachListeners() {
   });
 
   document
-    .getElementById("upload-btn")
+    .getElementById("create-sheet-btn")
     ?.addEventListener("click", async (e) => {
       const btn = e.currentTarget as HTMLButtonElement;
       setButtonLoading(btn, true, "Create Sheet");
@@ -182,7 +236,7 @@ function attachListeners() {
         await renderApp();
       } catch (err) {
         showStatus("Failed to create sheet.", true);
-        console.error("[upload-btn]", err);
+        console.error("[create-sheet-btn]", err);
       } finally {
         setButtonLoading(btn, false, "Create Sheet");
       }
@@ -210,8 +264,14 @@ async function renderApp() {
   const { key, spreadsheetId } = await getStorageValues();
 
   document.querySelector("#app")!.innerHTML = key
-    ? renderMain(spreadsheetId)
+    ? spreadsheetId
+      ? renderMain(spreadsheetId)
+      : renderCreateSheetForm()
     : renderKeyForm();
+
+  if (key && spreadsheetId) {
+    addMenu();
+  }
 
   attachListeners();
 }
