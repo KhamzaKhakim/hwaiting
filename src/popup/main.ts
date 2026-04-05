@@ -75,11 +75,26 @@ function renderCreateSheetForm() {
 function renderMain() {
   return `
     <div class="flex-col">
-      <button id="read-btn">Add to Sheet</button>
-       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
-       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
-       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
-       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
+      <button id="read-btn">Parse Page</button>
+      <form id="job-form" class="flex-col">
+        <div class="flex-col gap-0">
+          <label for="job-title">Job Title</label>
+          <input id="job-title" placeholder="e.g. Frontend Engineer" />
+        </div>
+        <div class="flex-col gap-0">
+          <label for="company">Company</label>
+          <input id="company" placeholder="e.g. Acme Corp" />
+        </div>
+        <div class="flex-col gap-0">
+          <label for="experience">Needed Experience</label>
+          <input id="experience" placeholder="e.g. 3+ years" />
+        </div>
+        <div class="flex-col gap-0">
+          <label for="tech-stack">Tech Stack</label>
+          <input id="tech-stack" placeholder="e.g. React, Node.js" />
+        </div>
+        <button id="add-to-sheet-btn" class="submit" disabled>Add to Sheet</button>
+      </form>
     </div>
   `;
 }
@@ -87,7 +102,7 @@ function renderMain() {
 function renderSettings() {
   return `
     <div class="flex-col">
-    <button id="delete-btn">Go to Sheet</button>
+    <button id="a">Go to Sheet</button>
     <button id="remove-key">Remove Gemini Key</button>
     <button id="delete-btn">Remove Sheet</button>
     </div>
@@ -123,6 +138,18 @@ function addMenu() {
   });
 }
 
+function syncAddToSheetBtn() {
+  const btn = document.getElementById(
+    "add-to-sheet-btn",
+  ) as HTMLButtonElement | null;
+  if (!btn) return;
+  const ids = ["job-title", "company", "experience", "tech-stack"];
+  const allFilled = ids.every((id) =>
+    (document.getElementById(id) as HTMLInputElement)?.value.trim(),
+  );
+  btn.disabled = !allFilled;
+}
+
 function attachListeners() {
   document.getElementById("key-input")?.addEventListener("input", () => {
     showKeyError("");
@@ -133,7 +160,6 @@ function attachListeners() {
     ?.addEventListener("click", async (e) => {
       const btn = e.currentTarget as HTMLButtonElement;
       const input = document.getElementById("key-input") as HTMLInputElement;
-
       const trimmed = input.value.trim();
 
       if (!trimmed) {
@@ -142,23 +168,16 @@ function attachListeners() {
       }
 
       setButtonLoading(btn, true, "Save Key");
-
       try {
         await testGeminiKey(trimmed);
-
-        await chrome.storage.local.set({
-          [STORAGE_KEYS.GEMINI_KEY]: trimmed,
-        });
-
+        await chrome.storage.local.set({ [STORAGE_KEYS.GEMINI_KEY]: trimmed });
         await renderApp();
         showStatus("Key saved successfully!", false);
       } catch (err: any) {
         console.error("[set-key-btn]", err);
-
         const message = err?.message?.includes("API_KEY_INVALID")
           ? "Invalid API key."
           : "Failed to validate key.";
-
         showKeyError(message);
       } finally {
         setButtonLoading(btn, false, "Save Key");
@@ -181,9 +200,13 @@ function attachListeners() {
       }
     });
 
+  ["job-title", "company", "experience", "tech-stack"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", syncAddToSheetBtn);
+  });
+
   document.getElementById("read-btn")?.addEventListener("click", async (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
-    setButtonLoading(btn, true, "Add to Sheet");
+    setButtonLoading(btn, true, "Parse Page");
     try {
       const [tab] = await chrome.tabs.query({
         active: true,
@@ -198,21 +221,70 @@ function attachListeners() {
         action: "readDOM",
       });
 
-      console.log(JSON.stringify(response));
       if (!response?.text) {
         showStatus("No content received from page.", true);
         return;
       }
 
-      await appendValues(response.text);
-      showStatus("Successfully added to sheet!");
+      const rows = (response.text as string)
+        .trim()
+        .split("\n")
+        .map((r) => r.split(",").map((v) => v.trim().replace(/^"|"$/g, "")));
+
+      const [jobTitle, company, experience, techStack] = rows[rows.length - 1];
+
+      (document.getElementById("job-title") as HTMLInputElement).value =
+        jobTitle ?? "";
+      (document.getElementById("company") as HTMLInputElement).value =
+        company ?? "";
+      (document.getElementById("experience") as HTMLInputElement).value =
+        experience ?? "";
+      (document.getElementById("tech-stack") as HTMLInputElement).value =
+        techStack ?? "";
+
+      syncAddToSheetBtn();
+      showStatus("Page parsed successfully!");
     } catch (err) {
-      showStatus("Failed to add to sheet. Is the page accessible?", true);
+      showStatus("Failed to parse page.", true);
       console.error("[read-btn]", err);
     } finally {
-      setButtonLoading(btn, false, "Add to Sheet");
+      setButtonLoading(btn, false, "Parse Page");
     }
   });
+
+  document
+    .getElementById("add-to-sheet-btn")
+    ?.addEventListener("click", async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      setButtonLoading(btn, true, "Add to Sheet");
+      try {
+        const values = [
+          (
+            document.getElementById("job-title") as HTMLInputElement
+          ).value.trim(),
+          (document.getElementById("company") as HTMLInputElement).value.trim(),
+          (
+            document.getElementById("experience") as HTMLInputElement
+          ).value.trim(),
+          (
+            document.getElementById("tech-stack") as HTMLInputElement
+          ).value.trim(),
+        ].join(",");
+
+        await appendValues(values);
+        showStatus("Successfully added to sheet!");
+
+        (document.getElementById("job-title") as HTMLInputElement).value = "";
+        (document.getElementById("company") as HTMLInputElement).value = "";
+        (document.getElementById("experience") as HTMLInputElement).value = "";
+        (document.getElementById("tech-stack") as HTMLInputElement).value = "";
+      } catch (err) {
+        showStatus("Failed to add to sheet.", true);
+        console.error("[add-to-sheet-btn]", err);
+      } finally {
+        setButtonLoading(btn, false, "Add to Sheet");
+      }
+    });
 
   document
     .getElementById("create-sheet-btn")
@@ -222,12 +294,8 @@ function attachListeners() {
       try {
         const { id } = await copySheet();
         if (!id) throw new Error("No sheet ID returned.");
-
         await chrome.storage.local.set({ [STORAGE_KEYS.SPREADSHEET_ID]: id });
-
-        const sheetUrl = `https://docs.google.com/spreadsheets/d/${id}`;
-        window.open(sheetUrl, "_blank");
-
+        window.open(`https://docs.google.com/spreadsheets/d/${id}`, "_blank");
         showStatus("Sheet created successfully!");
         await renderApp();
       } catch (err) {
@@ -258,6 +326,8 @@ function attachListeners() {
 
 async function renderApp() {
   const { key, spreadsheetId } = await getStorageValues();
+
+  console.log(key, spreadsheetId);
 
   document.querySelector("#app")!.innerHTML = key
     ? spreadsheetId
