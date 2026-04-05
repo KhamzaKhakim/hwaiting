@@ -242,7 +242,7 @@ input:focus-visible {
   position: absolute;
   top: 60px;
   right: 20px;
-  background: #fff;
+  background: var(--surface-color);
   border: 1px solid #ddd;
   width: 200px;
   display: none;

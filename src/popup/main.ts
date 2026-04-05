@@ -72,20 +72,29 @@ function renderCreateSheetForm() {
   `;
 }
 
-function renderMain(spreadsheetId?: string) {
-  const sheetSection = spreadsheetId
-    ? `<p class="sheet-id" title="${spreadsheetId}">${spreadsheetId}</p>
-       <button id="delete-btn">Delete Sheet</button>`
-    : `<button id="upload-btn">Create Sheet</button>`;
-
+function renderMain() {
   return `
     <div class="flex-col">
       <button id="read-btn">Add to Sheet</button>
-      <button id="remove-key">Remove Key</button>
-      ${sheetSection}
+       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
+       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
+       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
+       <input id="key-input" placeholder="AIzaSy••••••••••••••••" />
     </div>
   `;
 }
+
+function renderSettings() {
+  return `
+    <div class="flex-col">
+    <button id="delete-btn">Go to Sheet</button>
+    <button id="remove-key">Remove Gemini Key</button>
+    <button id="delete-btn">Remove Sheet</button>
+    </div>
+  `;
+}
+
+let isMain = true;
 
 function addMenu() {
   const header = document.querySelector(".header");
@@ -94,36 +103,23 @@ function addMenu() {
   header.insertAdjacentHTML(
     "beforeend",
     `
-    <div class="burger" id="burger">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-    <div class="menu" id="menu">
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Services</a>
-      <a href="#">Contact</a>
-    </div>
+   <button>
+      <div class="burger" id="burger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </button>
   `,
   );
 
   const burger = document.getElementById("burger")!;
-  const menu = document.getElementById("menu")!;
 
   burger.addEventListener("click", () => {
-    burger.classList.toggle("active");
-    menu.classList.toggle("show");
-  });
+    isMain = !isMain;
 
-  document.addEventListener("click", (e) => {
-    if (
-      !burger.contains(e.target as Node) &&
-      !menu.contains(e.target as Node)
-    ) {
-      burger.classList.remove("active");
-      menu.classList.remove("show");
-    }
+    burger.classList.toggle("active");
+    renderApp();
   });
 }
 
@@ -265,11 +261,13 @@ async function renderApp() {
 
   document.querySelector("#app")!.innerHTML = key
     ? spreadsheetId
-      ? renderMain(spreadsheetId)
+      ? isMain
+        ? renderMain()
+        : renderSettings()
       : renderCreateSheetForm()
     : renderKeyForm();
 
-  if (key && spreadsheetId) {
+  if (key && spreadsheetId && !document.getElementById("burger")) {
     addMenu();
   }
 
