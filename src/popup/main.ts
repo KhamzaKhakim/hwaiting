@@ -1,4 +1,4 @@
-import { initAuth } from "@/oauth/oauth";
+import { initAuth } from "@/helpers/oauth";
 import { copySheet } from "@/sheets/copy";
 import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
@@ -75,26 +75,32 @@ function renderCreateSheetForm() {
 function renderMain() {
   return `
     <div class="flex-col">
-      <button id="read-btn">Parse Page</button>
-      <form id="job-form" class="flex-col">
-        <div class="flex-col gap-0">
+      <div class="grid">
+        <div class="flex-col gap-1">
           <label for="job-title">Job Title</label>
           <input id="job-title" placeholder="e.g. Frontend Engineer" />
         </div>
-        <div class="flex-col gap-0">
+
+        <div class="flex-col gap-1">
           <label for="company">Company</label>
           <input id="company" placeholder="e.g. Acme Corp" />
         </div>
-        <div class="flex-col gap-0">
+
+        <div class="flex-col gap-1">
           <label for="experience">Needed Experience</label>
           <input id="experience" placeholder="e.g. 3+ years" />
         </div>
-        <div class="flex-col gap-0">
+
+        <div class="flex-col gap-1">
           <label for="tech-stack">Tech Stack</label>
           <input id="tech-stack" placeholder="e.g. React, Node.js" />
         </div>
+      </div>
+
+      <div class="button-row">
+        <button id="read-btn">Parse Page</button>
         <button id="add-to-sheet-btn" class="submit" disabled>Add to Sheet</button>
-      </form>
+      </div>
     </div>
   `;
 }
@@ -118,8 +124,8 @@ function addMenu() {
   header.insertAdjacentHTML(
     "beforeend",
     `
-   <button>
-      <div class="burger" id="burger">
+   <button id="burger-btn">
+      <div class="burger" id="burger-icon">
         <span></span>
         <span></span>
         <span></span>
@@ -128,12 +134,13 @@ function addMenu() {
   `,
   );
 
-  const burger = document.getElementById("burger")!;
+  const burgerBtn = document.getElementById("burger-btn")!;
+  const burgerIcon = document.getElementById("burger-icon")!;
 
-  burger.addEventListener("click", () => {
+  burgerBtn.addEventListener("click", () => {
     isMain = !isMain;
 
-    burger.classList.toggle("active");
+    burgerIcon.classList.toggle("active");
     renderApp();
   });
 }
@@ -337,8 +344,12 @@ async function renderApp() {
       : renderCreateSheetForm()
     : renderKeyForm();
 
-  if (key && spreadsheetId && !document.getElementById("burger")) {
-    addMenu();
+  if (key && spreadsheetId) {
+    if (!document.getElementById("burger-btn")) {
+      addMenu();
+    }
+  } else {
+    document.getElementById("burger-btn")?.remove();
   }
 
   attachListeners();

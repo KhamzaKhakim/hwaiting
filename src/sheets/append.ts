@@ -1,4 +1,4 @@
-import { getAuthToken } from "@/oauth/oauth";
+import { getAuthToken } from "@/helpers/oauth";
 
 export async function appendValues(values: string): Promise<void> {
   const token = await getAuthToken();

@@ -108,6 +108,10 @@ body {
   gap: 0;
 }
 
+.gap-1 {
+  gap: 2px;
+}
+
 h1,
 h2,
 h3,
@@ -263,4 +267,20 @@ input:focus-visible {
 
 .menu.show {
   display: flex;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.button-row button {
+  flex: 1;
 }

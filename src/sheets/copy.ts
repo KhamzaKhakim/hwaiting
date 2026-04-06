@@ -1,4 +1,4 @@
-import { getAuthToken } from "@/oauth/oauth";
+import { getAuthToken } from "@/helpers/oauth";
 
 const TEMPLATE_FILE_ID = "1zji-uITnMyRfcJU58FxgBu94yAZAuCeGH_c_ngttkF8";
 
