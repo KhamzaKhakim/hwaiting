@@ -79,9 +79,8 @@ body {
 }
 
 #app {
-  max-width: 1280px;
-  min-width: 450px;
-  min-height: 240px;
+  width: 450px;
+  height: 240px;
   margin: 0 auto;
   padding: 1rem 2rem;
 }
@@ -111,6 +110,7 @@ body {
 }
 
 .header {
+  view-transition-name: header;
   padding: 16px 16px;
 }
 
@@ -301,5 +301,25 @@ input:focus-visible {
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 1s;
+  animation-duration: 2s;
+}
+
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+::view-transition-old(root) {
+  animation: slide-out-right 0.3s ease forwards;
+}
+
+::view-transition-new(root) {
+  animation: slide-in-right 0.3s ease forwards;
 }

@@ -62,7 +62,7 @@ function renderKeyForm() {
 
 function renderCreateSheetForm() {
   return `
-    <div class="flex-col h-full">
+    <div class="flex-col h-full justify-center">
       <div class="flex-col gap-0">
           <h2>Create spreadsheet</h2>
         <p class="muted">In order to put values from sheet we first need to create spreadsheet. Please click to create sheet button to create it.</p>
@@ -74,7 +74,7 @@ function renderCreateSheetForm() {
 
 function renderMain() {
   return `
-    <div class="flex-col">
+    <div class="flex-col h-full justify-center">
       <div class="grid">
         <div class="flex-col gap-1">
           <label for="job-title">Job Title</label>
@@ -107,7 +107,7 @@ function renderMain() {
 
 function renderSettings() {
   return `
-    <div class="flex-col">
+    <div class="flex-col h-full justify-center">
     <button id="a">Go to Sheet</button>
     <button id="remove-key">Remove Gemini Key</button>
     <button id="delete-btn">Remove Sheet</button>
@@ -133,16 +133,6 @@ function addMenu() {
     </button>
   `,
   );
-
-  const burgerBtn = document.getElementById("burger-btn")!;
-  const burgerIcon = document.getElementById("burger-icon")!;
-
-  burgerBtn.addEventListener("click", () => {
-    isMain = !isMain;
-
-    burgerIcon.classList.toggle("active");
-    renderApp();
-  });
 }
 
 function syncAddToSheetBtn() {
@@ -158,14 +148,14 @@ function syncAddToSheetBtn() {
 }
 
 function attachListeners() {
-  document.getElementById("key-input")?.addEventListener("input", () => {
-    showKeyError("");
-  });
+  document.addEventListener("click", async (e) => {
+    const target = (e.target as HTMLElement).closest(
+      "button, a",
+    ) as HTMLElement;
+    if (!target) return;
 
-  document
-    .getElementById("set-key-btn")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
+    if (target.id === "set-key-btn") {
+      const btn = target as HTMLButtonElement;
       const input = document.getElementById("key-input") as HTMLInputElement;
       const trimmed = input.value.trim();
 
@@ -179,9 +169,7 @@ function attachListeners() {
         await testGeminiKey(trimmed);
         await chrome.storage.local.set({ [STORAGE_KEYS.GEMINI_KEY]: trimmed });
         await renderApp();
-        // showStatus("Key saved successfully!", false);
       } catch (err: any) {
-        console.error("[set-key-btn]", err);
         const message = err?.message?.includes("API_KEY_INVALID")
           ? "Invalid API key."
           : "Failed to validate key.";
@@ -189,80 +177,69 @@ function attachListeners() {
       } finally {
         setButtonLoading(btn, false, "Save Key");
       }
-    });
+    }
 
-  document
-    .getElementById("remove-key")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
+    if (target.id === "remove-key") {
+      const btn = target as HTMLButtonElement;
       setButtonLoading(btn, true, "Remove Key");
       try {
         await chrome.storage.local.remove(STORAGE_KEYS.GEMINI_KEY);
         await renderApp();
       } catch (err) {
         showStatus("Failed to remove key.", true);
-        console.error("[remove-key]", err);
       } finally {
         setButtonLoading(btn, false, "Remove Key");
       }
-    });
-
-  ["job-title", "company", "experience", "tech-stack"].forEach((id) => {
-    document.getElementById(id)?.addEventListener("input", syncAddToSheetBtn);
-  });
-
-  document.getElementById("read-btn")?.addEventListener("click", async (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    setButtonLoading(btn, true, "Parse Page");
-    try {
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      if (!tab?.id) {
-        showStatus("No active tab found.", true);
-        return;
-      }
-
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "readDOM",
-      });
-
-      if (!response?.text) {
-        showStatus("No content received from page.", true);
-        return;
-      }
-
-      const rows = (response.text as string)
-        .trim()
-        .split("\n")
-        .map((r) => r.split(",").map((v) => v.trim().replace(/^"|"$/g, "")));
-
-      const [jobTitle, company, experience, techStack] = rows[rows.length - 1];
-
-      (document.getElementById("job-title") as HTMLInputElement).value =
-        jobTitle ?? "";
-      (document.getElementById("company") as HTMLInputElement).value =
-        company ?? "";
-      (document.getElementById("experience") as HTMLInputElement).value =
-        experience ?? "";
-      (document.getElementById("tech-stack") as HTMLInputElement).value =
-        techStack ?? "";
-
-      syncAddToSheetBtn();
-      showStatus("Page parsed successfully!");
-    } catch (err) {
-      showStatus("Failed to parse page.", true);
-      console.error("[read-btn]", err);
-    } finally {
-      setButtonLoading(btn, false, "Parse Page");
     }
-  });
 
-  document
-    .getElementById("add-to-sheet-btn")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
+    if (target.id === "read-btn") {
+      const btn = target as HTMLButtonElement;
+      setButtonLoading(btn, true, "Parse Page");
+      try {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        if (!tab?.id) {
+          showStatus("No active tab found.", true);
+          return;
+        }
+
+        const response = await chrome.tabs.sendMessage(tab.id, {
+          action: "readDOM",
+        });
+        if (!response?.text) {
+          showStatus("No content received from page.", true);
+          return;
+        }
+
+        const rows = (response.text as string)
+          .trim()
+          .split("\n")
+          .map((r) => r.split(",").map((v) => v.trim().replace(/^"|"$/g, "")));
+
+        const [jobTitle, company, experience, techStack] =
+          rows[rows.length - 1];
+        (document.getElementById("job-title") as HTMLInputElement).value =
+          jobTitle ?? "";
+        (document.getElementById("company") as HTMLInputElement).value =
+          company ?? "";
+        (document.getElementById("experience") as HTMLInputElement).value =
+          experience ?? "";
+        (document.getElementById("tech-stack") as HTMLInputElement).value =
+          techStack ?? "";
+
+        syncAddToSheetBtn();
+        showStatus("Page parsed successfully!");
+      } catch (err) {
+        showStatus("Failed to parse page.", true);
+      } finally {
+        setButtonLoading(btn, false, "Parse Page");
+      }
+    }
+
+    if (target.id === "add-to-sheet-btn") {
+      const btn = target as HTMLButtonElement;
       setButtonLoading(btn, true, "Add to Sheet");
       try {
         const values = [
@@ -287,36 +264,31 @@ function attachListeners() {
         (document.getElementById("tech-stack") as HTMLInputElement).value = "";
       } catch (err) {
         showStatus("Failed to add to sheet.", true);
-        console.error("[add-to-sheet-btn]", err);
       } finally {
         setButtonLoading(btn, false, "Add to Sheet");
       }
-    });
+    }
 
-  document
-    .getElementById("create-sheet-btn")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
+    if (target.id === "create-sheet-btn") {
+      const btn = target as HTMLButtonElement;
       setButtonLoading(btn, true, "Create Sheet");
       try {
         const { id } = await copySheet();
         if (!id) throw new Error("No sheet ID returned.");
         await chrome.storage.local.set({ [STORAGE_KEYS.SPREADSHEET_ID]: id });
-        window.open(`https://docs.google.com/spreadsheets/d/${id}`, "_blank");
-        showStatus("Sheet created successfully!");
+        chrome.tabs.create({
+          url: `https://docs.google.com/spreadsheets/d/${id}`,
+        });
         await renderApp();
       } catch (err) {
         showStatus("Failed to create sheet.", true);
-        console.error("[create-sheet-btn]", err);
       } finally {
         setButtonLoading(btn, false, "Create Sheet");
       }
-    });
+    }
 
-  document
-    .getElementById("delete-btn")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget as HTMLButtonElement;
+    if (target.id === "delete-btn") {
+      const btn = target as HTMLButtonElement;
       setButtonLoading(btn, true, "Delete Sheet");
       try {
         await chrome.storage.local.remove(STORAGE_KEYS.SPREADSHEET_ID);
@@ -324,41 +296,52 @@ function attachListeners() {
         await renderApp();
       } catch (err) {
         showStatus("Failed to remove sheet.", true);
-        console.error("[delete-btn]", err);
       } finally {
         setButtonLoading(btn, false, "Delete Sheet");
       }
-    });
+    }
+
+    if (target.id === "burger-btn") {
+      isMain = !isMain;
+      document.getElementById("burger-icon")?.classList.toggle("active");
+      await renderApp();
+    }
+  });
+
+  // input events don't bubble the same way for delegation, but "input" does bubble
+  document.addEventListener("input", (e) => {
+    const target = e.target as HTMLElement;
+
+    if (target.id === "key-input") showKeyError("");
+
+    if (
+      ["job-title", "company", "experience", "tech-stack"].includes(target.id)
+    ) {
+      syncAddToSheetBtn();
+    }
+  });
 }
 
 async function renderApp() {
   const { key, spreadsheetId } = await getStorageValues();
 
-  if (
-    !document.startViewTransition ||
-    document.querySelector("#app")!.innerHTML == ""
-  ) {
-    document.querySelector("#app")!.innerHTML = key
+  const render = () =>
+    (document.querySelector("#app")!.innerHTML = key
       ? spreadsheetId
         ? isMain
           ? renderMain()
           : renderSettings()
         : renderCreateSheetForm()
-      : renderKeyForm();
-  } else {
-    document.startViewTransition(
-      () =>
-        (document.querySelector("#app")!.innerHTML = key
-          ? spreadsheetId
-            ? isMain
-              ? renderMain()
-              : renderSettings()
-            : renderCreateSheetForm()
-          : renderKeyForm()),
-    );
-  }
+      : renderKeyForm());
 
-  // With a View Transition:
+  if (
+    !document.startViewTransition ||
+    document.querySelector("#app")!.innerHTML == ""
+  ) {
+    render();
+  } else {
+    await document.startViewTransition(render).ready;
+  }
 
   if (key && spreadsheetId) {
     if (!document.getElementById("burger-btn")) {
@@ -367,13 +350,12 @@ async function renderApp() {
   } else {
     document.getElementById("burger-btn")?.remove();
   }
-
-  attachListeners();
 }
 
 (async () => {
   try {
     initAuth();
+    attachListeners();
     await renderApp();
   } catch (err) {
     console.error("[init]", err);
