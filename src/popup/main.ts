@@ -1,4 +1,3 @@
-import { initAuth } from "@/helpers/oauth";
 import { copySheet } from "@/sheets/copy";
 import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
@@ -308,7 +307,6 @@ function attachListeners() {
     }
   });
 
-  // input events don't bubble the same way for delegation, but "input" does bubble
   document.addEventListener("input", (e) => {
     const target = e.target as HTMLElement;
 
@@ -354,7 +352,6 @@ async function renderApp() {
 
 (async () => {
   try {
-    initAuth();
     attachListeners();
     await renderApp();
   } catch (err) {

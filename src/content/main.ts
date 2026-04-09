@@ -27,15 +27,12 @@ Page text:\n`;
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "readDOM" && !!key) {
     (async () => {
-      console.log("Start gemini");
       const text = document.body.innerText;
 
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-lite-preview",
         contents: promt + text,
       });
-
-      console.log("Content response:", response.text);
 
       sendResponse({ text: response.text });
     })();

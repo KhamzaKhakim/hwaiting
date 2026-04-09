@@ -5,10 +5,8 @@ export async function testGeminiKey(key: string) {
     apiKey: key,
   });
 
-  const response = await ai.models.generateContent({
+  await ai.models.generateContent({
     model: "gemini-3.1-flash-lite-preview",
     contents: "Hello, how are you!",
   });
-
-  console.log("Test response: " + response.text);
 }
