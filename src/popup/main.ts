@@ -62,7 +62,7 @@ function renderKeyForm() {
 
 function renderCreateSheetForm() {
   return `
-    <div class="flex-col">
+    <div class="flex-col h-full">
       <div class="flex-col gap-0">
           <h2>Create spreadsheet</h2>
         <p class="muted">In order to put values from sheet we first need to create spreadsheet. Please click to create sheet button to create it.</p>
@@ -179,7 +179,7 @@ function attachListeners() {
         await testGeminiKey(trimmed);
         await chrome.storage.local.set({ [STORAGE_KEYS.GEMINI_KEY]: trimmed });
         await renderApp();
-        showStatus("Key saved successfully!", false);
+        // showStatus("Key saved successfully!", false);
       } catch (err: any) {
         console.error("[set-key-btn]", err);
         const message = err?.message?.includes("API_KEY_INVALID")
@@ -334,15 +334,31 @@ function attachListeners() {
 async function renderApp() {
   const { key, spreadsheetId } = await getStorageValues();
 
-  console.log(key, spreadsheetId);
+  if (
+    !document.startViewTransition ||
+    document.querySelector("#app")!.innerHTML == ""
+  ) {
+    document.querySelector("#app")!.innerHTML = key
+      ? spreadsheetId
+        ? isMain
+          ? renderMain()
+          : renderSettings()
+        : renderCreateSheetForm()
+      : renderKeyForm();
+  } else {
+    document.startViewTransition(
+      () =>
+        (document.querySelector("#app")!.innerHTML = key
+          ? spreadsheetId
+            ? isMain
+              ? renderMain()
+              : renderSettings()
+            : renderCreateSheetForm()
+          : renderKeyForm()),
+    );
+  }
 
-  document.querySelector("#app")!.innerHTML = key
-    ? spreadsheetId
-      ? isMain
-        ? renderMain()
-        : renderSettings()
-      : renderCreateSheetForm()
-    : renderKeyForm();
+  // With a View Transition:
 
   if (key && spreadsheetId) {
     if (!document.getElementById("burger-btn")) {
