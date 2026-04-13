@@ -3,6 +3,7 @@ import { appendValues } from "@/sheets/append";
 import { getStorageValues, STORAGE_KEYS } from "@/helpers/storage";
 import geminiLogo from "../assets/gemini.svg";
 import { testGeminiKey } from "@/gemini/test";
+import { parseCSVLine } from "@/helpers/utils";
 
 function setButtonLoading(
   btn: HTMLButtonElement,
@@ -22,7 +23,16 @@ function showStatus(message: string, isError = false) {
   el.textContent = message;
   el.className = isError ? "status error" : "status success";
 
-  document.querySelector("#app")?.appendChild(el);
+  Object.assign(el.style, {
+    position: "fixed",
+    bottom: "1rem",
+    left: "50%",
+    transform: "translateX(-50%)",
+    margin: "0",
+    pointerEvents: "none",
+  });
+
+  document.body.appendChild(el);
 
   setTimeout(() => el.remove(), 3000);
 }
@@ -71,6 +81,23 @@ function renderCreateSheetForm() {
   `;
 }
 
+function syncAddToSheetBtn() {
+  const btn = document.getElementById(
+    "add-to-sheet-btn",
+  ) as HTMLButtonElement | null;
+
+  const readBtn = document.getElementById(
+    "read-btn",
+  ) as HTMLButtonElement | null;
+
+  if (!btn) return;
+  const ids = ["job-title", "company", "experience", "tech-stack"];
+  const allFilled = ids.every((id) =>
+    (document.getElementById(id) as HTMLInputElement)?.value.trim(),
+  );
+  btn.disabled = !allFilled || (readBtn?.disabled ?? false);
+}
+
 function renderMain() {
   return `
     <div class="flex-col h-full justify-center">
@@ -107,7 +134,7 @@ function renderMain() {
 function renderSettings() {
   return `
     <div class="flex-col h-full justify-center">
-    <button id="a">Go to Sheet</button>
+    <button id="go-to-sheet">Go to Sheet</button>
     <button id="remove-key">Remove Gemini Key</button>
     <button id="delete-btn">Remove Sheet</button>
     </div>
@@ -132,18 +159,6 @@ function addMenu() {
     </button>
   `,
   );
-}
-
-function syncAddToSheetBtn() {
-  const btn = document.getElementById(
-    "add-to-sheet-btn",
-  ) as HTMLButtonElement | null;
-  if (!btn) return;
-  const ids = ["job-title", "company", "experience", "tech-stack"];
-  const allFilled = ids.every((id) =>
-    (document.getElementById(id) as HTMLInputElement)?.value.trim(),
-  );
-  btn.disabled = !allFilled;
 }
 
 function attachListeners() {
@@ -191,9 +206,19 @@ function attachListeners() {
       }
     }
 
+    if (target.id === "go-to-sheet") {
+      const { spreadsheetId } = await getStorageValues();
+      if (spreadsheetId) {
+        chrome.tabs.create({
+          url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,
+        });
+      }
+    }
+
     if (target.id === "read-btn") {
       const btn = target as HTMLButtonElement;
       setButtonLoading(btn, true, "Parse Page");
+      syncAddToSheetBtn();
       try {
         const [tab] = await chrome.tabs.query({
           active: true,
@@ -207,18 +232,16 @@ function attachListeners() {
         const response = await chrome.tabs.sendMessage(tab.id, {
           action: "readDOM",
         });
-        if (!response?.text) {
-          showStatus("No content received from page.", true);
+
+        if (response?.error) {
+          showStatus(response.error, true);
           return;
         }
 
-        const rows = (response.text as string)
-          .trim()
-          .split("\n")
-          .map((r) => r.split(",").map((v) => v.trim().replace(/^"|"$/g, "")));
-
-        const [jobTitle, company, experience, techStack] =
-          rows[rows.length - 1];
+        const lines = (response.text as string).trim().split("\n");
+        const [jobTitle, company, experience, techStack] = parseCSVLine(
+          lines[lines.length - 1],
+        );
         (document.getElementById("job-title") as HTMLInputElement).value =
           jobTitle ?? "";
         (document.getElementById("company") as HTMLInputElement).value =
@@ -228,12 +251,12 @@ function attachListeners() {
         (document.getElementById("tech-stack") as HTMLInputElement).value =
           techStack ?? "";
 
-        syncAddToSheetBtn();
         showStatus("Page parsed successfully!");
       } catch (err) {
         showStatus("Failed to parse page.", true);
       } finally {
         setButtonLoading(btn, false, "Parse Page");
+        syncAddToSheetBtn();
       }
     }
 
@@ -252,7 +275,7 @@ function attachListeners() {
           (
             document.getElementById("tech-stack") as HTMLInputElement
           ).value.trim(),
-        ].join(",");
+        ];
 
         await appendValues(values);
         showStatus("Successfully added to sheet!");
@@ -277,6 +300,7 @@ function attachListeners() {
         await chrome.storage.local.set({ [STORAGE_KEYS.SPREADSHEET_ID]: id });
         chrome.tabs.create({
           url: `https://docs.google.com/spreadsheets/d/${id}`,
+          active: false,
         });
         await renderApp();
       } catch (err) {

@@ -1,16 +1,12 @@
 import { getAuthToken } from "@/helpers/oauth";
 
-export async function appendValues(values: string): Promise<void> {
+export async function appendValues(values: string[]): Promise<void> {
   const token = await getAuthToken();
-
-  const cells = values
-    .match(/(".*?"|[^,]+)/g)!
-    .map((cell) => cell.replace(/^"|"$/g, "").trim());
 
   const today = new Date();
   const date = `${String(today.getDate()).padStart(2, "0")}/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
 
-  cells.splice(2, 0, date);
+  values.splice(2, 0, date);
 
   const spreadsheetId = await chrome.storage.local
     .get(["spreadsheet_id"])
@@ -24,7 +20,7 @@ export async function appendValues(values: string): Promise<void> {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ values: [[...cells, "Applied"]] }),
+      body: JSON.stringify({ values: [[...values, "Applied"]] }),
     },
   );
 

@@ -28,17 +28,17 @@
 
 :root {
   --primary-color: #646cff;
-  --primary-color-hover: #535bf2;
+  --primary-color-hover: #747bff;
   --primary-color-shadow: rgba(100, 108, 255, 0.2);
 
   --submit-color: #4f46e5;
   --submit-color-hover: #4338ca;
   --submit-color-active: #3730a3;
 
-  --bg-color: #242424;
-  --surface-color: #1a1a1a;
+  --bg-color: #ffffff;
+  --surface-color: #f9f9f9;
 
-  --text-color: rgba(255, 255, 255, 0.87);
+  --text-color: #213547;
   --text-color-muted: #888;
 
   --border-color: #2a2a2a;
@@ -142,7 +142,7 @@ h4 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 2px solid #d3cfcf;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 700;
@@ -151,6 +151,7 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: var(--primary-color);
 }
@@ -171,6 +172,16 @@ button.submit:hover {
 
 button.submit:active {
   background-color: var(--submit-color-active);
+}
+
+button.submit:disabled {
+  background-color: #a5b4fc;
+  color: #e0e7ff;
+  cursor: not-allowed;
+}
+
+button.submit:disabled:hover {
+  background-color: #a5b4fc;
 }
 
 input {
@@ -195,15 +206,6 @@ input:focus,
 input:focus-visible {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px var(--primary-color-shadow);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --text-color: #213547;
-    --bg-color: #ffffff;
-    --primary-color-hover: #747bff;
-    --surface-color: #f9f9f9;
-  }
 }
 
 .muted {
