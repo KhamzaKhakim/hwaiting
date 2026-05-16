@@ -15,4 +15,6 @@ Open any job listing, click the Hwaiting button, and the extension automatically
 
 ## Good luck, job seekers. Hwaiting ✊
 
-![Hwaiting](./public/hwaiting.gif)
+<div align="center">
+  <img src="./public/hwaiting.gif" alt="Hwaiting" />
+</div>
